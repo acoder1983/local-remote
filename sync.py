@@ -3,8 +3,9 @@
 import os
 import sys
 import json
-import shutil
+import win32file
 import win32com.client as com
+
 
 INFO_FILE = 'files.list'
 
@@ -63,6 +64,7 @@ class FileInfos:
 
     def save(self):
         text = json.dumps(self.lists, indent=2)
+        print text
         try:
             with open(self.infoPath, 'w') as f:
                 f.write(text)
@@ -156,7 +158,7 @@ def copyFile(src, dest):
         destDir = os.path.dirname(dest)
         if not os.path.exists(destDir):
             os.makedirs(destDir)
-        shutil.copy(src, dest)
+        win32file.CopyFile(src, dest, 0)
     except Exception, e:
         pmsg(e)
 
