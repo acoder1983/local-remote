@@ -64,7 +64,6 @@ class FileInfos:
 
     def save(self):
         text = json.dumps(self.lists, indent=2)
-        print text
         try:
             with open(self.infoPath, 'w') as f:
                 f.write(text)
@@ -122,7 +121,6 @@ def sync():
                 dest = os.path.join(remoteRoot, f)
                 copyFile(src, dest)
                 remote.lists['add'].append(f)
-                pmsg('copy file %s to %s' % (src, dest))
 
         # add files from remote to local
         for f in remote.lists['add']:
@@ -131,17 +129,18 @@ def sync():
                 dest = os.path.join(localRoot, f)
                 copyFile(src, dest)
                 local.lists['add'].append(f)
-                pmsg('copy file %s to %s' % (src, dest))
 
         # del files from local to remote
         for f in local.lists['del']:
             delFile(os.path.join(remoteRoot, f))
-            pmsg('del file %s' % os.path.join(remoteRoot, f))
+            if f not in remote.lists['del']:
+                remote.lists['del'].append(f)
 
         # del files from remote to local
         for f in remote.lists['del']:
             delFile(os.path.join(localRoot, f))
-            pmsg('del file %s' % os.path.join(localRoot, f))
+            if f not in local.lists['del']:
+                local.lists['del'].append(f)
 
         # save file infos
         remote.save()
@@ -159,13 +158,16 @@ def copyFile(src, dest):
         if not os.path.exists(destDir):
             os.makedirs(destDir)
         win32file.CopyFile(src, dest, 0)
+        pmsg('copy file %s to %s' % (src, dest))
     except Exception, e:
         pmsg(e)
 
 
 def delFile(f):
     try:
-        os.remove(f)
+        if os.path.exists(f):
+            os.remove(f)
+            pmsg('del file %s' % f)
     except Exception, e:
         pmsg(e)
 
